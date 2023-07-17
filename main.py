@@ -1,17 +1,33 @@
-from flask import Flask
-
-from db import get_reading, add_reading
+from flask import Flask, jsonify, request
+from datetime import datetime, timedelta
+from db import db, Reading
+from utils import parse_data
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
+db.init_app(app)
+with app.app_context():
+    db.create_all()
 
 
-@app.post("/data")
+@app.route("/data", methods=["POST"])
 def post_data():
-    # TODO: parse incoming data, and save it to the database
-    # data is of the form:
-    #  {timestamp} {name} {value}
-
-    return {"success": False}
+    data = request.get_data(as_text=True)
+    try:
+        readings = parse_data(data)
+        if readings:
+            for reading in readings:
+                load = Reading(timestamp=reading["timestamp"], name=reading["name"], value=reading["value"])
+                db.session.add(load)
+            db.session.commit()
+            return jsonify({"success": True}), 200
+        else:
+            return jsonify({"success": False}), 400
+    except ValueError:
+        return jsonify({"success": False}), 400
 
 
 @app.get("/data")
