@@ -15,6 +15,25 @@ with app.app_context():
 
 @app.route("/data", methods=["POST"])
 def post_data():
+    """
+    Store data in the database.
+
+    Expects data in plaintext format, with each line representing a reading consisting of timestamp, metric name, and metric value.
+    Returns a JSON response with success status.
+
+    Example Request:
+    POST /data
+    Body:
+    1649941817 Voltage 1.34
+    1649941818 Voltage 1.35
+    1649941817 Current 12.0
+    1649941818 Current 14.0
+
+    Example Response:
+    {
+        "success": true
+    }
+    """
     data = request.get_data(as_text=True)
     try:
         readings = parse_data(data)
@@ -32,6 +51,46 @@ def post_data():
 
 @app.route("/data", methods=["GET"])
 def get_data():
+    """
+    Retrieve data within the specified date range and calculate average power per day.
+
+    URL: GET /data?from={from_date}&to={to_date}
+
+    Parameters:
+        - from_date (str): Start date in ISO format (YYYY-MM-DD).
+        - to_date (str): End date in ISO format (YYYY-MM-DD).
+
+    Returns:
+        - JSON response with success status, data, and average power per day.
+
+    Example Request:
+        GET /data?from=2022-04-14&to=2022-04-15
+
+    Example Response:
+        {
+            "success": true,
+            "data": [
+                {
+                    "time": "2022-04-14T13:10:17.000Z",
+                    "name": "Voltage",
+                    "value": 1.34
+                },
+                {
+                    "time": "2022-04-14T13:10:17.000Z",
+                    "name": "Current",
+                    "value": 12.0
+                },
+                ...
+            ],
+            "avg_power_per_day": [
+                {
+                    "date": "2022-04-14",
+                    "average_power": 16.08
+                },
+                ...
+            ]
+        }
+    """
     from_date = datetime.fromisoformat(request.args.get("from"))
     to_date = datetime.fromisoformat(request.args.get("to")) + timedelta(days=1)
 
