@@ -30,11 +30,27 @@ def post_data():
         return jsonify({"success": False}), 400
 
 
-@app.get("/data")
+@app.route("/data", methods=["GET"])
 def get_data():
-    # TODO: check what dates have been requested, and retrieve all data within the given range
+    from_date = datetime.fromisoformat(request.args.get("from"))
+    to_date = datetime.fromisoformat(request.args.get("to")) + timedelta(days=1)
 
-    return {"success": False}
+    readings = (
+        Reading.query
+        .filter(Reading.timestamp.between(from_date, to_date))
+        .all()
+    )
+
+    data = [
+        {
+            "time": reading.timestamp.isoformat(),
+            "name": reading.name,
+            "value": reading.value
+        }
+        for reading in readings
+    ]
+
+    return jsonify({"success": True, "data": data}), 200
 
 
 if __name__ == "__main__":
