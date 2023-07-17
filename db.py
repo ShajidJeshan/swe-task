@@ -1,22 +1,15 @@
-class Reading:
-    # TODO: change this to represent whatever information is needed
-    pass
+from flask_sqlalchemy import SQLAlchemy
+db = SQLAlchemy()
 
 
-# This is a fake database which stores data in-memory while the process is running
-# Feel free to change the data structure to anything else you would like
-database: dict[str, Reading] = {}
+class Reading(db.Model):
+    __tablename__ = 'reading'
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.DateTime, nullable=False)
+    name = db.Column(db.String(50), nullable=False)
+    value = db.Column(db.Float, nullable=False)
 
-
-def add_reading(key: str, reading: Reading) -> None:
-    """
-    Store a reading in the database using the given key
-    """
-    database[key] = reading
-
-
-def get_reading(key: str) -> Reading | None:
-    """
-    Retrieve a reading from the database using the given key
-    """
-    return database.get(key)
+    def __init__(self, timestamp, name, value):
+        self.timestamp = timestamp
+        self.name = name
+        self.value = value
