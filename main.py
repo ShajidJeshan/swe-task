@@ -13,7 +13,7 @@ with app.app_context():
     db.create_all()
 
 
-@app.route("/data", methods=["POST"])
+@app.route("/data/", methods=["POST"])
 def post_data():
     """
     Store data in the database.
